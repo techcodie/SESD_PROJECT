@@ -59,3 +59,5 @@ properties ||--o{ bookings : "receives"
 properties ||--|| addresses : "located at"
 @enduml
 ```
+
+![ER Diagram](images/ErDiagram.jpg)

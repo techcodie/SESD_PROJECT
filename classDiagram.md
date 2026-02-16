@@ -87,3 +87,5 @@ enum BookingStatus {
 }
 @enduml
 ```
+
+![Class Diagram](images/classDiagram.jpg)
