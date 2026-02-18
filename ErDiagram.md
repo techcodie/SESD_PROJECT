@@ -9,6 +9,9 @@ The relational schema is designed to support high data integrity and efficient q
 - **Bookings:** Join table representing the interaction between users and properties.
 - **Addresses:** Stores geographic information to avoid redundancy.
 
+
+![ER Diagram](images/ErDiagram.jpg)
+
 ## PlantUML Source
 ```plantuml
 @startuml
@@ -60,4 +63,3 @@ properties ||--|| addresses : "located at"
 @enduml
 ```
 
-![ER Diagram](images/ErDiagram.jpg)

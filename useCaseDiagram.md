@@ -14,6 +14,9 @@ The Use Case Diagram illustrates the functional requirements of the system by sh
 - **Booking Workflow:** Process from request to acceptance/rejection.
 - **Moderation:** Ensuring platform safety.
 
+
+![Use Case Diagram](images/useCaseDiagram.jpg)
+
 ## PlantUML Source
 ```plantuml
 @startuml

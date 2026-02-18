@@ -10,6 +10,10 @@ This diagram demonstrates the interaction between a Customer, the System, and th
 4. The Owner reviews the request and performs an action (Accept/Reject).
 5. The System updates the status and notifies the Customer of the decision.
 
+
+
+![Sequence Diagram](images/sequenceDiagram.jpg)
+
 ## PlantUML Source
 ```plantuml
 @startuml

@@ -10,6 +10,9 @@ The system follows a modular object-oriented design to ensure scalability and ea
 - **Booking:** Represents the transactional relationship between a Customer and a Property.
 - **Address:** Compositional element for Property and User locations.
 
+
+![Class Diagram](images/classDiagram.jpg)
+
 ## PlantUML Source
 ```plantuml
 @startuml
@@ -88,4 +91,3 @@ enum BookingStatus {
 @enduml
 ```
 
-![Class Diagram](images/classDiagram.jpg)
