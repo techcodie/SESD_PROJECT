@@ -1,0 +1,19 @@
+export enum PropertyStatus {
+  AVAILABLE = "AVAILABLE",
+  RENTED = "RENTED",
+  SOLD = "SOLD",
+  PENDING_VERIFICATION = "PENDING_VERIFICATION"
+}
+
+export enum BookingStatus {
+  PENDING = "PENDING",
+  ACCEPTED = "ACCEPTED",
+  REJECTED = "REJECTED",
+  COMPLETED = "COMPLETED"
+}
+
+export enum UserRole {
+  CUSTOMER = "CUSTOMER",
+  OWNER = "OWNER",
+  ADMIN = "ADMIN"
+}
