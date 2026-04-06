@@ -1,0 +1,13 @@
+import { Router } from 'express';
+import { BookingController } from '../controllers/BookingController';
+
+const router = Router();
+const bookingController = new BookingController();
+
+router.post('/', bookingController.requestBooking);
+router.patch('/:id/accept', bookingController.acceptBooking);
+router.patch('/:id/reject', bookingController.rejectBooking);
+router.get('/customer/:customerId', bookingController.getBookingsByCustomer);
+router.get('/property/:propertyId', bookingController.getBookingsByProperty);
+
+export default router;
