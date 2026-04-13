@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Real Estate Property Listing & Booking Management System" />
+  <title>PropEstate — Find Your Dream Property</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="navbar">
+    <div class="nav-brand">PropEstate</div>
+    <div class="nav-links">
+      <button class="nav-btn active" onclick="showPage('home')">Home</button>
+      <button class="nav-btn" onclick="showPage('properties')">Properties</button>
+      <button class="nav-btn" onclick="showPage('bookings')">My Bookings</button>
+      <button class="nav-btn" onclick="showPage('admin')">Admin</button>
+    </div>
+    <button class="btn-primary" onclick="showModal('registerModal')">Register</button>
+  </nav>
+
+  <!-- HOME PAGE -->
+  <div id="page-home" class="page active">
+    <section class="hero">
+      <div class="hero-content">
+        <div class="hero-badge">🏡 Real Estate Platform</div>
+        <h1>Find Your Perfect Property</h1>
+        <p>Browse curated listings from verified owners. Request bookings, schedule visits, and track your status — all in one place.</p>
+        <div class="hero-actions">
+          <button class="btn-primary large" onclick="showPage('properties')">Browse Properties</button>
+          <button class="btn-outline large" onclick="showModal('registerModal')">Join as Owner</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats-bar">
+      <div class="stat">
+        <span class="stat-number" id="stat-properties">0</span>
+        <span class="stat-label">Listed Properties</span>
+      </div>
+      <div class="stat">
+        <span class="stat-number" id="stat-users">0</span>
+        <span class="stat-label">Registered Users</span>
+      </div>
+      <div class="stat">
+        <span class="stat-number" id="stat-bookings">0</span>
+        <span class="stat-label">Bookings Made</span>
+      </div>
+    </section>
+  </div>
+
+  <!-- PROPERTIES PAGE -->
+  <div id="page-properties" class="page">
+    <div class="page-header">
+      <h2>Property Listings</h2>
+      <button class="btn-primary" onclick="showModal('addPropertyModal')">+ Add Property</button>
+    </div>
+    <div class="filter-bar">
+      <input type="text" id="filter-city" placeholder="Filter by city..." oninput="renderProperties()" />
+      <select id="filter-status" onchange="renderProperties()">
+        <option value="">All Statuses</option>
+        <option value="AVAILABLE">Available</option>
+        <option value="PENDING_VERIFICATION">Pending Verification</option>
+        <option value="SOLD">Sold</option>
+      </select>
+    </div>
+    <div class="properties-grid" id="properties-grid">
+      <p class="empty-state">No properties listed yet. Add the first one!</p>
+    </div>
+  </div>
+
+  <!-- BOOKINGS PAGE -->
+  <div id="page-bookings" class="page">
+    <div class="page-header">
+      <h2>Booking Requests</h2>
+    </div>
+    <div class="input-row">
+      <input type="text" id="booking-customer-id" placeholder="Enter your Customer ID to view bookings" />
+      <button class="btn-primary" onclick="loadCustomerBookings()">Search</button>
+    </div>
+    <div id="bookings-list" class="bookings-list">
+      <p class="empty-state">Enter your customer ID above to see your bookings.</p>
+    </div>
+  </div>
+
+  <!-- ADMIN PAGE -->
+  <div id="page-admin" class="page">
+    <div class="page-header">
+      <h2>Admin Panel</h2>
+      <span class="badge badge-admin">Admin Only</span>
+    </div>
+    <div class="admin-sections">
+      <div class="admin-card">
+        <h3>Pending Verification</h3>
+        <div id="pending-properties"></div>
+      </div>
+      <div class="admin-card">
+        <h3>All Users</h3>
+        <div id="all-users-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REGISTER MODAL -->
+  <div class="modal-overlay" id="registerModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Create Account</h3>
+        <button class="modal-close" onclick="closeModal('registerModal')">×</button>
+      </div>
+      <form onsubmit="handleRegister(event)">
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" id="reg-name" required placeholder="John Doe" />
+        </div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="reg-email" required placeholder="john@example.com" />
+        </div>
+        <div class="form-group">
+          <label>Role</label>
+          <select id="reg-role">
+            <option value="CUSTOMER">Customer</option>
+            <option value="OWNER">Owner / Agent</option>
+            <option value="ADMIN">Admin</option>
+          </select>
+        </div>
+        <button type="submit" class="btn-primary full-width">Register</button>
+      </form>
+      <div id="reg-result" class="result-box hidden"></div>
+    </div>
+  </div>
+
+  <!-- ADD PROPERTY MODAL -->
+  <div class="modal-overlay" id="addPropertyModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>List a Property</h3>
+        <button class="modal-close" onclick="closeModal('addPropertyModal')">×</button>
+      </div>
+      <form onsubmit="handleAddProperty(event)">
+        <div class="form-group">
+          <label>Owner ID</label>
+          <input type="text" id="prop-owner-id" required placeholder="Your Owner user ID" />
+        </div>
+        <div class="form-group">
+          <label>Title</label>
+          <input type="text" id="prop-title" required placeholder="e.g. 2BHK in Bandra" />
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="prop-description" rows="2" placeholder="Brief description..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Price (₹)</label>
+          <input type="number" id="prop-price" required placeholder="5000000" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Street</label>
+            <input type="text" id="prop-street" required placeholder="123 Main St" />
+          </div>
+          <div class="form-group">
+            <label>City</label>
+            <input type="text" id="prop-city" required placeholder="Mumbai" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>State</label>
+            <input type="text" id="prop-state" required placeholder="Maharashtra" />
+          </div>
+          <div class="form-group">
+            <label>Zip Code</label>
+            <input type="text" id="prop-zip" required placeholder="400001" />
+          </div>
+        </div>
+        <button type="submit" class="btn-primary full-width">Submit Listing</button>
+      </form>
+      <div id="prop-result" class="result-box hidden"></div>
+    </div>
+  </div>
+
+  <!-- BOOK PROPERTY MODAL -->
+  <div class="modal-overlay" id="bookPropertyModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Request Booking</h3>
+        <button class="modal-close" onclick="closeModal('bookPropertyModal')">×</button>
+      </div>
+      <form onsubmit="handleBookProperty(event)">
+        <div class="form-group">
+          <label>Property ID</label>
+          <input type="text" id="book-property-id" readonly />
+        </div>
+        <div class="form-group">
+          <label>Your Customer ID</label>
+          <input type="text" id="book-customer-id" required placeholder="Your user ID" />
+        </div>
+        <button type="submit" class="btn-primary full-width">Confirm Booking</button>
+      </form>
+      <div id="book-result" class="result-box hidden"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
