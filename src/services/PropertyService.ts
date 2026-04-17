@@ -55,4 +55,12 @@ export class PropertyService implements IPropertyService {
   public verifyProperty(propertyId: string): Property | null {
     return this.propertyRepository.update(propertyId, { status: PropertyStatus.AVAILABLE });
   }
+
+  public deleteProperty(propertyId: string): boolean {
+    return this.propertyRepository.deleteProperty(propertyId);
+  }
+
+  public updateProperty(propertyId: string, details: Partial<Property>): Property | null {
+    return this.propertyRepository.update(propertyId, details);
+  }
 }

@@ -38,4 +38,12 @@ export class UserService implements IUserService {
   public getAllUsers() {
     return this.userRepository.findAll();
   }
+
+  public deleteUser(userId: string) {
+    return this.userRepository.deleteUser(userId);
+  }
+
+  public updateUser(userId: string, data: any) {
+    return this.userRepository.updateUser(userId, data);
+  }
 }
