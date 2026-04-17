@@ -48,4 +48,33 @@ export class UserController {
   public getAllUsers = (req: Request, res: Response): void => {
     res.json(this.userService.getAllUsers());
   };
+
+  public deleteUser = (req: Request, res: Response): void => {
+    const success = this.userService.deleteUser(req.params.id);
+    if (success) {
+      res.json({ message: 'User deleted' });
+    } else {
+      res.status(404).json({ error: 'User not found' });
+    }
+  };
+
+  public updateUser = (req: Request, res: Response): void => {
+    const updated = this.userService.updateUser(req.params.id, req.body);
+    if (updated) {
+      res.json(updated);
+    } else {
+      res.status(404).json({ error: 'User not found' });
+    }
+  };
+
+  public login = (req: Request, res: Response): void => {
+    // Simple mock login via email
+    const users = this.userService.getAllUsers();
+    const user = users.find(u => u.email === req.body.email);
+    if (user) {
+      res.json(user);
+    } else {
+      res.status(401).json({ error: 'Invalid credentials' });
+    }
+  };
 }

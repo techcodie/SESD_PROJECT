@@ -70,4 +70,22 @@ export class PropertyController {
     }
     res.json(property);
   };
+
+  public deleteProperty = (req: Request, res: Response): void => {
+    const success = this.propertyService.deleteProperty(req.params.id);
+    if (success) {
+      res.json({ message: 'Property deleted' });
+    } else {
+      res.status(404).json({ error: 'Property not found' });
+    }
+  };
+
+  public updateProperty = (req: Request, res: Response): void => {
+    const property = this.propertyService.updateProperty(req.params.id, req.body);
+    if (property) {
+      res.json(property);
+    } else {
+      res.status(404).json({ error: 'Property not found' });
+    }
+  };
 }

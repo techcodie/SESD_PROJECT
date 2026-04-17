@@ -51,4 +51,13 @@ export class BookingController {
     const bookings = this.bookingService.getBookingsForProperty(req.params.propertyId);
     res.json(bookings);
   };
+
+  public deleteBooking = (req: Request, res: Response): void => {
+    const success = this.bookingService.deleteBooking(req.params.id);
+    if (success) {
+      res.json({ message: 'Booking deleted' });
+    } else {
+      res.status(404).json({ error: 'Booking not found' });
+    }
+  };
 }
