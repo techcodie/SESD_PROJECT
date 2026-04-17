@@ -14,13 +14,28 @@
   <!-- NAV -->
   <nav class="navbar">
     <div class="nav-brand">PropEstate</div>
-    <div class="nav-links">
-      <button class="nav-btn active" onclick="showPage('home')">Home</button>
-      <button class="nav-btn" onclick="showPage('properties')">Properties</button>
-      <button class="nav-btn" onclick="showPage('bookings')">My Bookings</button>
-      <button class="nav-btn" onclick="showPage('admin')">Admin</button>
+    <div style="margin-left: 2rem; margin-right: auto;">
+      <select id="portal-selector" style="padding: 0.4rem 1rem; border-radius: var(--radius-sm); font-weight: 600; background: rgba(0, 229, 255, 0.1); border: 1px solid var(--accent); color: var(--accent); outline: none;" onchange="switchPortal(this.value)">
+        <option value="user">User Portal</option>
+        <option value="admin">Admin Portal</option>
+      </select>
     </div>
-    <button class="btn-primary" onclick="showModal('registerModal')">Register</button>
+    <div class="nav-links">
+      <button class="nav-btn active user-nav" onclick="showPage('home')">Home</button>
+      <button class="nav-btn user-nav" onclick="showPage('properties')">Properties</button>
+      <button class="nav-btn user-nav" onclick="showPage('bookings')" id="nav-bookings" style="display: none;">My Bookings</button>
+      <button class="nav-btn admin-nav" onclick="showPage('admin')" style="display: none;">Admin Dashboard</button>
+    </div>
+    
+    <!-- User Status actions -->
+    <div id="auth-actions">
+       <button class="btn-outline" onclick="showModal('loginModal')" style="margin-right:0.5rem">Login</button>
+       <button class="btn-primary" onclick="showModal('registerModal')">Register</button>
+    </div>
+    <div id="user-info" style="display:none; align-items:center; gap: 1rem;">
+       <span id="logged-in-name" style="font-weight:600; color:var(--accent)"></span>
+       <button class="btn-outline btn-sm" onclick="handleLogout()">Logout</button>
+    </div>
   </nav>
 
   <!-- HOME PAGE -->
@@ -135,6 +150,25 @@
     </div>
   </div>
 
+  <!-- LOGIN MODAL -->
+  <div class="modal-overlay" id="loginModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>User Login</h3>
+        <button class="modal-close" onclick="closeModal('loginModal')">×</button>
+      </div>
+      <form onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="login-email" required placeholder="john@example.com" />
+        </div>
+        <button type="submit" class="btn-primary full-width">Login</button>
+      </form>
+      <div class="alert-box" style="margin-top:1rem; font-size:0.8rem; color:var(--text-secondary)">Tip: Use alice@example.com for Customer, or bob@example.com for Owner.</div>
+      <div id="login-result" class="result-box hidden"></div>
+    </div>
+  </div>
+
   <!-- ADD PROPERTY MODAL -->
   <div class="modal-overlay" id="addPropertyModal">
     <div class="modal">
@@ -204,6 +238,22 @@
         <button type="submit" class="btn-primary full-width">Confirm Booking</button>
       </form>
       <div id="book-result" class="result-box hidden"></div>
+    </div>
+  </div>
+
+  <!-- ADMIN AUTH MODAL -->
+  <div class="modal-overlay" id="adminAuthModal">
+    <div class="modal" style="max-width: 400px; text-align: center;">
+      <div class="modal-header">
+        <h3>Admin Access Required</h3>
+      </div>
+      <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.9rem;">Please enter the secure admin PIN to access this dashboard.</p>
+      <input type="password" id="admin-pin" placeholder="Enter PIN" style="text-align: center; font-size: 1.2rem; letter-spacing: 4px; margin-bottom: 1rem;" />
+      <div class="form-row">
+        <button class="btn-outline" onclick="cancelAdminAuth()">Cancel</button>
+        <button class="btn-primary" onclick="verifyAdmin()">Unlock</button>
+      </div>
+      <div id="admin-auth-result" class="result-box hidden"></div>
     </div>
   </div>
 
