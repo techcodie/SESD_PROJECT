@@ -1,7 +1,30 @@
 // Replace YOUR_RENDER_APP_URL with your actual Render deployment URL later
-const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-  ? 'http://localhost:3000/api'
-  : 'https://sesd-project-sa7h.onrender.com/api';
+const API = window.location.hostname === 'sesd-project-sa7h.onrender.com'
+  ? 'https://sesd-project-sa7h.onrender.com/api'
+  : 'http://127.0.0.1:3000/api';
+
+let loggedInUser = null;
+
+function updateNavState() {
+  if (loggedInUser) {
+    document.getElementById('nav-bookings').style.display = 'inline-block';
+    document.getElementById('auth-actions').style.display = 'none';
+    document.getElementById('user-info').style.display = 'flex';
+    document.getElementById('logged-in-name').textContent = loggedInUser.name;
+    const addPropBtn = document.querySelector('#page-properties .btn-primary');
+    if (addPropBtn) {
+      addPropBtn.style.display = (loggedInUser.role === 'OWNER' || loggedInUser.role === 'ADMIN') ? 'inline-block' : 'none';
+    }
+    document.getElementById('booking-customer-id').value = loggedInUser.userId;
+    document.getElementById('booking-customer-id').readOnly = true;
+  } else {
+    document.getElementById('nav-bookings').style.display = 'none';
+    document.getElementById('auth-actions').style.display = 'flex';
+    document.getElementById('user-info').style.display = 'none';
+    const addPropBtn = document.querySelector('#page-properties .btn-primary');
+    if (addPropBtn) addPropBtn.style.display = 'none';
+  }
+}
 
 // ---- Page Navigation ----
 
@@ -10,11 +33,53 @@ function showPage(name) {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById(`page-${name}`).classList.add('active');
   const btns = document.querySelectorAll('.nav-btn');
-  btns.forEach(b => { if (b.getAttribute('onclick').includes(name)) b.classList.add('active'); });
+  btns.forEach(b => { if (b.getAttribute('onclick') && b.getAttribute('onclick').includes(name)) b.classList.add('active'); });
 
   if (name === 'properties') loadProperties();
   if (name === 'admin') loadAdminPanel();
   if (name === 'home') loadStats();
+}
+
+function switchPortal(type) {
+  if (type === 'admin') {
+    showModal('adminAuthModal');
+    // We don't change the UI to admin until they verify
+    return;
+  }
+  
+  // They selected User portal
+  grantAdminAccess(false);
+}
+
+function verifyAdmin() {
+  const pin = document.getElementById('admin-pin').value;
+  if (pin === '1234') {
+    closeModal('adminAuthModal');
+    document.getElementById('admin-pin').value = '';
+    grantAdminAccess(true);
+  } else {
+    showResult('admin-auth-result', 'Incorrect PIN. Try 1234.', true);
+  }
+}
+
+function cancelAdminAuth() {
+  closeModal('adminAuthModal');
+  document.getElementById('portal-selector').value = 'user';
+}
+
+function grantAdminAccess(isAdmin) {
+  if (isAdmin) {
+    document.querySelectorAll('.user-nav').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.admin-nav').forEach(el => el.style.display = 'inline-block');
+    document.getElementById('auth-actions').style.display = 'none';
+    document.getElementById('user-info').style.display = 'none';
+    showPage('admin');
+  } else {
+    document.querySelectorAll('.user-nav').forEach(el => el.style.display = 'inline-block');
+    document.querySelectorAll('.admin-nav').forEach(el => el.style.display = 'none');
+    updateNavState();
+    showPage('home');
+  }
 }
 
 // ---- Modal Helpers ----
@@ -51,11 +116,49 @@ async function handleRegister(e) {
     });
     const data = await res.json();
     if (!res.ok) { showResult('reg-result', data.error, true); return; }
-    showResult('reg-result', `✅ Registered! Your ID: ${data.userId}`);
+    
+    loggedInUser = data;
+    updateNavState();
+    closeModal('registerModal');
     loadStats();
+    if (loggedInUser.role === 'ADMIN') {
+      document.getElementById('portal-selector').value = 'admin';
+      switchPortal('admin');
+    }
   } catch {
     showResult('reg-result', 'Server unreachable. Is the backend running?', true);
   }
+}
+
+async function handleLogin(e) {
+  e.preventDefault();
+  const email = document.getElementById('login-email').value.trim();
+
+  try {
+    const res = await fetch(`${API}/users/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    const data = await res.json();
+    if (!res.ok) { showResult('login-result', data.error, true); return; }
+    
+    loggedInUser = data;
+    updateNavState();
+    closeModal('loginModal');
+    if (loggedInUser.role === 'ADMIN') {
+      document.getElementById('portal-selector').value = 'admin';
+      switchPortal('admin');
+    }
+  } catch {
+    showResult('login-result', 'Server unreachable.', true);
+  }
+}
+
+function handleLogout() {
+  loggedInUser = null;
+  updateNavState();
+  showPage('home');
 }
 
 // ---- Add Property ----
@@ -98,6 +201,15 @@ async function loadProperties() {
     const res = await fetch(`${API}/properties`);
     const data = await res.json();
 
+    let userBookings = [];
+    if (loggedInUser) {
+      try {
+        const bRes = await fetch(`${API}/bookings/customer/${loggedInUser.userId}`);
+        const bData = await bRes.json();
+        if (Array.isArray(bData)) userBookings = bData;
+      } catch (e) {}
+    }
+
     const cityFilter = document.getElementById('filter-city').value.toLowerCase();
     const statusFilter = document.getElementById('filter-status').value;
 
@@ -112,21 +224,64 @@ async function loadProperties() {
       return;
     }
 
-    grid.innerHTML = filtered.map(p => `
-      <div class="property-card">
-        <h4>${escapeHtml(p.title)}</h4>
-        <div class="price">₹${Number(p.price).toLocaleString('en-IN')}</div>
-        <div class="location">📍 ${escapeHtml(p.location.city)}, ${escapeHtml(p.location.state)}</div>
-        <div class="description">${escapeHtml(p.description || 'No description provided.')}</div>
-        <div class="property-meta">
-          <span class="badge ${statusBadgeClass(p.status)}">${p.status.replace('_', ' ')}</span>
-          ${p.status === 'AVAILABLE' ? `<button class="btn-sm btn-book" onclick="openBookModal('${p.propertyId}')">Book</button>` : ''}
+    if (!loggedInUser) {
+      // Guest View: Grouped by category
+      grid.style.display = 'block'; // Turn off pure grid for sections
+      
+      const featured = filtered.slice(0, 2);
+      const budget = filtered.filter(p => p.price < 5000000);
+      const luxury = filtered.filter(p => p.price > 20000000);
+      
+      grid.innerHTML = `
+        <div style="margin-bottom: 2rem;">
+          <h3 style="color:var(--accent); margin-bottom: 1rem;">🔥 Trending & Featured</h3>
+          <div class="properties-grid">${featured.map(p => propertyCardHtml(p, userBookings)).join('')}</div>
         </div>
-      </div>
-    `).join('');
+        <div style="margin-bottom: 2rem;">
+          <h3 style="color:var(--green); margin-bottom: 1rem;">💰 Budget-friendly</h3>
+          <div class="properties-grid">${budget.map(p => propertyCardHtml(p, userBookings)).join('')}</div>
+        </div>
+        <div style="margin-bottom: 2rem;">
+          <h3 style="color:var(--yellow); margin-bottom: 1rem;">💎 Luxury Properties</h3>
+          <div class="properties-grid">${luxury.map(p => propertyCardHtml(p, userBookings)).join('')}</div>
+        </div>
+      `;
+    } else {
+      // Logged in View: Pure filtered grid
+      grid.style.display = 'grid';
+      grid.innerHTML = filtered.map(p => propertyCardHtml(p, userBookings)).join('');
+    }
   } catch {
     grid.innerHTML = '<p class="empty-state">Could not load properties. Is the backend running?</p>';
   }
+}
+
+function propertyCardHtml(p, userBookings = []) {
+  const existingBooking = userBookings.find(b => b.propertyId === p.propertyId);
+  let actionHtml = '';
+  
+  if (existingBooking) {
+    if (existingBooking.status === 'PENDING') {
+      actionHtml = `<span class="badge badge-pending">Requested</span>`;
+    } else {
+      actionHtml = `<span class="badge ${statusBadgeClass(existingBooking.status)}">${existingBooking.status}</span>`;
+    }
+  } else if (p.status === 'AVAILABLE') {
+    actionHtml = `<button class="btn-sm btn-book" onclick="openBookModal('${p.propertyId}')">Book</button>`;
+  }
+
+  return `
+    <div class="property-card">
+      <h4>${escapeHtml(p.title)}</h4>
+      <div class="price">₹${Number(p.price).toLocaleString('en-IN')}</div>
+      <div class="location">📍 ${escapeHtml(p.location.city)}, ${escapeHtml(p.location.state)}</div>
+      <div class="description">${escapeHtml(p.description || 'No description provided.')}</div>
+      <div class="property-meta">
+        <span class="badge ${statusBadgeClass(p.status)}">${p.status.replace('_', ' ')}</span>
+        ${actionHtml}
+      </div>
+    </div>
+  `;
 }
 
 function renderProperties() {
@@ -142,7 +297,12 @@ function statusBadgeClass(status) {
 // ---- Book Property ----
 
 function openBookModal(propertyId) {
+  if (!loggedInUser) {
+    showModal('loginModal');
+    return;
+  }
   document.getElementById('book-property-id').value = propertyId;
+  document.getElementById('book-customer-id').value = loggedInUser.userId;
   showModal('bookPropertyModal');
 }
 
@@ -160,6 +320,12 @@ async function handleBookProperty(e) {
     const data = await res.json();
     if (!res.ok) { showResult('book-result', data.error, true); return; }
     showResult('book-result', `✅ Booking requested! Booking ID: ${data.bookingId}`);
+    
+    // Automatically close the modal after a brief pause and refresh properties
+    setTimeout(() => {
+      closeModal('bookPropertyModal');
+      loadProperties();
+    }, 1500);
   } catch {
     showResult('book-result', 'Server unreachable.', true);
   }
@@ -193,6 +359,7 @@ async function loadCustomerBookings() {
         </div>
         <div class="booking-actions">
           <span class="badge ${statusBadgeClass(b.status)}">${b.status}</span>
+          ${b.status !== 'REJECTED' && b.status !== 'COMPLETED' ? `<button class="btn-sm btn-reject" onclick="cancelBooking('${b.bookingId}')">Cancel</button>` : ''}
         </div>
       </div>
     `).join('');
@@ -201,34 +368,56 @@ async function loadCustomerBookings() {
   }
 }
 
+async function cancelBooking(bookingId) {
+  if (!confirm("Are you sure you want to cancel this booking?")) return;
+  try {
+    await fetch(`${API}/bookings/${bookingId}`, { method: 'DELETE' });
+    loadCustomerBookings();
+  } catch {
+    alert("Error canceling booking");
+  }
+}
+
 // ---- Admin Panel ----
 
 async function loadAdminPanel() {
-  await loadPendingProperties();
+  await loadAllProperties();
   await loadAllUsers();
 }
 
-async function loadPendingProperties() {
+async function loadAllProperties() {
   const container = document.getElementById('pending-properties');
+  const header = document.querySelector('#page-admin h3');
+  if (header) header.textContent = "All Properties (Manage)";
+  
   try {
     const res = await fetch(`${API}/properties`);
     const data = await res.json();
-    const pending = data.filter(p => p.status === 'PENDING_VERIFICATION');
 
-    if (pending.length === 0) {
-      container.innerHTML = '<p class="empty-state" style="padding:1rem 0">No properties pending verification.</p>';
+    if (data.length === 0) {
+      container.innerHTML = '<p class="empty-state" style="padding:1rem 0">No properties in system.</p>';
       return;
     }
 
-    container.innerHTML = pending.map(p => `
+    container.innerHTML = data.map(p => `
       <div class="admin-item">
-        <span>${escapeHtml(p.title)} — ${escapeHtml(p.location.city)}</span>
-        <button class="btn-sm btn-accept" onclick="verifyProperty('${p.propertyId}')">Verify</button>
+        <span>${escapeHtml(p.title)} <span class="badge ${statusBadgeClass(p.status)}">${p.status}</span></span>
+        <div>
+          ${p.status === 'PENDING_VERIFICATION' ? `<button class="btn-sm btn-accept" onclick="verifyProperty('${p.propertyId}')">Verify</button>` : ''}
+          <button class="btn-sm btn-reject" onclick="deleteProperty('${p.propertyId}')">Delete</button>
+        </div>
       </div>
     `).join('');
   } catch {
     container.innerHTML = '<p class="empty-state" style="padding:1rem 0">Error loading data.</p>';
   }
+}
+
+async function deleteProperty(id) {
+  if (!confirm("Delete this property entirely?")) return;
+  await fetch(`${API}/properties/${id}`, { method: 'DELETE' });
+  loadAllProperties();
+  loadProperties();
 }
 
 async function verifyProperty(propertyId) {
@@ -253,16 +442,24 @@ async function loadAllUsers() {
     }
 
     container.innerHTML = data.map(u => `
-      <div class="user-item">
-        <div style="display:flex;justify-content:space-between;align-items:center">
+      <div class="user-item" style="display:flex;justify-content:space-between;align-items:center">
+        <div>
           <span>${escapeHtml(u.name)} <span style="color:var(--text-secondary);font-size:0.8rem">(${escapeHtml(u.email)})</span></span>
           <span class="user-role">${u.role}</span>
         </div>
+        <button class="btn-sm btn-reject" onclick="deleteUser('${u.userId}')">Remove</button>
       </div>
     `).join('');
   } catch {
     container.innerHTML = '<p class="empty-state" style="padding:1rem 0">Error loading users.</p>';
   }
+}
+
+async function deleteUser(id) {
+  if (!confirm("Remove this user?")) return;
+  await fetch(`${API}/users/${id}`, { method: 'DELETE' });
+  loadAllUsers();
+  loadStats();
 }
 
 // ---- Stats ----
