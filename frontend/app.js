@@ -1,7 +1,7 @@
 // Replace YOUR_RENDER_APP_URL with your actual Render deployment URL later
 const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   ? 'http://localhost:3000/api'
-  : 'https://YOUR_RENDER_APP_URL.onrender.com/api';
+  : 'https://sesd-project-sa7h.onrender.com/api';
 
 // ---- Page Navigation ----
 
