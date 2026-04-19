@@ -35,6 +35,7 @@ function showPage(name) {
   if (name === 'properties') loadProperties();
   if (name === 'admin') loadAdminPanel();
   if (name === 'home') loadStats();
+  if (name === 'bookings') loadCustomerBookings();
 }
 
 function switchPortal(type) {
