@@ -91,14 +91,10 @@
   <!-- BOOKINGS PAGE -->
   <div id="page-bookings" class="page">
     <div class="page-header">
-      <h2>Booking Requests</h2>
-    </div>
-    <div class="input-row">
-      <input type="text" id="booking-customer-id" placeholder="Enter your Customer ID to view bookings" />
-      <button class="btn-primary" onclick="loadCustomerBookings()">Search</button>
+      <h2>My Booking Requests</h2>
     </div>
     <div id="bookings-list" class="bookings-list">
-      <p class="empty-state">Enter your customer ID above to see your bookings.</p>
+      <p class="empty-state">Loading your bookings...</p>
     </div>
   </div>
 
@@ -112,6 +108,10 @@
       <div class="admin-card">
         <h3>Pending Verification</h3>
         <div id="pending-properties"></div>
+      </div>
+      <div class="admin-card">
+        <h3>Booking Requests</h3>
+        <div id="all-bookings-list"></div>
       </div>
       <div class="admin-card">
         <h3>All Users</h3>

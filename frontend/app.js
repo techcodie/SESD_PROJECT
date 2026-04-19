@@ -256,6 +256,23 @@ async function loadProperties() {
   }
 }
 
+const UN_IMAGES = [
+  'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9',
+  'https://images.unsplash.com/photo-1512917774080-9991f1c4c750',
+  'https://images.unsplash.com/photo-1600607687931-ceeb8ce36e15',
+  'https://images.unsplash.com/photo-1600585154340-be6161a56a0c',
+  'https://images.unsplash.com/photo-1510627489930-0c1b0bfb6785',
+  'https://images.unsplash.com/photo-1449844908441-8829872d2607',
+  'https://images.unsplash.com/photo-1512917774080-9991f1c4c750',
+  'https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde'
+];
+
+function getPropImg(id) {
+  let acc = 0;
+  for(let i=0; i<id.length; i++) acc += id.charCodeAt(i);
+  return UN_IMAGES[acc % UN_IMAGES.length] + '?auto=format&fit=crop&w=600&q=80';
+}
+
 function propertyCardHtml(p, userBookings = []) {
   const existingBooking = userBookings.find(b => b.propertyId === p.propertyId);
   let actionHtml = '';
@@ -272,13 +289,16 @@ function propertyCardHtml(p, userBookings = []) {
 
   return `
     <div class="property-card">
-      <h4>${escapeHtml(p.title)}</h4>
-      <div class="price">₹${Number(p.price).toLocaleString('en-IN')}</div>
-      <div class="location">📍 ${escapeHtml(p.location.city)}, ${escapeHtml(p.location.state)}</div>
-      <div class="description">${escapeHtml(p.description || 'No description provided.')}</div>
-      <div class="property-meta">
-        <span class="badge ${statusBadgeClass(p.status)}">${p.status.replace('_', ' ')}</span>
-        ${actionHtml}
+      <div class="property-image" style="background-image: url('${getPropImg(p.propertyId)}')"></div>
+      <div class="property-content">
+        <h4>${escapeHtml(p.title)}</h4>
+        <div class="price">₹${Number(p.price).toLocaleString('en-IN')}</div>
+        <div class="location">📍 ${escapeHtml(p.location.city)}, ${escapeHtml(p.location.state)}</div>
+        <div class="description">${escapeHtml(p.description || 'No description provided.')}</div>
+        <div class="property-meta">
+          <span class="badge ${statusBadgeClass(p.status)}">${p.status.replace('_', ' ')}</span>
+          ${actionHtml}
+        </div>
       </div>
     </div>
   `;
@@ -334,13 +354,9 @@ async function handleBookProperty(e) {
 // ---- Customer Bookings ----
 
 async function loadCustomerBookings() {
-  const customerId = document.getElementById('booking-customer-id').value.trim();
+  if (!loggedInUser) return;
+  const customerId = loggedInUser.userId;
   const list = document.getElementById('bookings-list');
-
-  if (!customerId) {
-    list.innerHTML = '<p class="empty-state">Please enter a customer ID.</p>';
-    return;
-  }
 
   try {
     const res = await fetch(`${API}/bookings/customer/${customerId}`);
@@ -382,7 +398,46 @@ async function cancelBooking(bookingId) {
 
 async function loadAdminPanel() {
   await loadAllProperties();
+  await loadAllBookings();
   await loadAllUsers();
+}
+
+async function loadAllBookings() {
+  const container = document.getElementById('all-bookings-list');
+  try {
+    const res = await fetch(`${API}/bookings`);
+    const data = await res.json();
+
+    if (data.length === 0) {
+      container.innerHTML = '<p class="empty-state" style="padding:1rem 0">No bookings in system.</p>';
+      return;
+    }
+
+    container.innerHTML = data.map(b => `
+      <div class="admin-item">
+        <div>
+          <strong>${b.propertyId}</strong> 
+          <span style="color:var(--text-secondary);font-size:0.8rem">(${b.customerId})</span>
+          <span class="badge ${statusBadgeClass(b.status)}">${b.status}</span>
+        </div>
+        <div>
+          ${b.status === 'PENDING' ? `<button class="btn-sm btn-accept" onclick="updateBookingState('${b.bookingId}', 'accept')">Accept</button>` : ''}
+          ${b.status === 'PENDING' ? `<button class="btn-sm btn-reject" onclick="updateBookingState('${b.bookingId}', 'reject')">Reject</button>` : ''}
+        </div>
+      </div>
+    `).join('');
+  } catch {
+    container.innerHTML = '<p class="empty-state" style="padding:1rem 0">Error loading bookings.</p>';
+  }
+}
+
+async function updateBookingState(id, action) {
+  try {
+    await fetch(`${API}/bookings/${id}/${action}`, { method: 'PATCH' });
+    loadAllBookings();
+  } catch {
+    alert('Failed to update booking state.');
+  }
 }
 
 async function loadAllProperties() {

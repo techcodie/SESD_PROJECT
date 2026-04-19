@@ -56,4 +56,8 @@ export class BookingService implements IBookingService {
   public deleteBooking(bookingId: string): boolean {
     return this.bookingRepository.deleteBooking(bookingId);
   }
+
+  public getAllBookings(): Booking[] {
+    return this.bookingRepository.findAll();
+  }
 }

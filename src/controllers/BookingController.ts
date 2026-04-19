@@ -60,4 +60,9 @@ export class BookingController {
       res.status(404).json({ error: 'Booking not found' });
     }
   };
+
+  public getAllBookings = (req: Request, res: Response): void => {
+    const bookings = this.bookingService.getAllBookings();
+    res.json(bookings);
+  };
 }
