@@ -4,6 +4,7 @@ import { UserRole } from '../models/Enums';
 
 export class UserRepository implements IUserRepository {
   private static instance: UserRepository;
+  private users: User[] = [
     { userId: 'USR-MOCK-1', name: 'Alice Johnson', email: 'alice@example.com', role: UserRole.CUSTOMER },
     { userId: 'USR-MOCK-2', name: 'Bob Builder', email: 'bob@example.com', role: UserRole.OWNER },
     { userId: 'USR-MOCK-3', name: 'Admin User', email: 'admin@propestate.com', role: UserRole.ADMIN },

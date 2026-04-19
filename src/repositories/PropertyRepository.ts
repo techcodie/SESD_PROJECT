@@ -5,6 +5,7 @@ import { Address } from '../models/Address';
 
 export class PropertyRepository implements IPropertyRepository {
   private static instance: PropertyRepository;
+  private properties: Property[] = [
     new Property('PROP-MOCK-1', 'USR-MOCK-2', 'Luxury Villa in Suburbs', 'A beautiful 4BHK villa with a private pool, garden, and smart home systems.', 25000000, PropertyStatus.AVAILABLE, new Address('ADDR-1', '10 Palm Ave', 'Mumbai', 'Maharashtra', '400050')),
     new Property('PROP-MOCK-2', 'USR-MOCK-2', 'Cozy Studio Apartment', 'Perfect for young professionals. Fully furnished and close to the metro station.', 4500000, PropertyStatus.PENDING_VERIFICATION, new Address('ADDR-2', '42 Main St', 'Pune', 'Maharashtra', '411001')),
     new Property('PROP-MOCK-3', 'USR-MOCK-4', 'Sea View Penthouse', 'Breathtaking ocean views from the 45th floor. Features a private terrace and premium interiors.', 85000000, PropertyStatus.AVAILABLE, new Address('ADDR-3', 'Marine Drive', 'Mumbai', 'Maharashtra', '400020')),
