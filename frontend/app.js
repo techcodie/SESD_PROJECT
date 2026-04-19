@@ -307,8 +307,8 @@ function renderProperties() {
 }
 
 function statusBadgeClass(status) {
-  if (status === 'AVAILABLE') return 'badge-available';
-  if (status === 'PENDING_VERIFICATION') return 'badge-pending';
+  if (status === 'AVAILABLE' || status === 'ACCEPTED' || status === 'COMPLETED') return 'badge-available';
+  if (status === 'PENDING_VERIFICATION' || status === 'PENDING') return 'badge-pending';
   return 'badge-sold';
 }
 
