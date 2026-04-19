@@ -522,13 +522,15 @@ async function loadStats() {
     const [pRes, uRes, bRes] = await Promise.all([
       fetch(`${API}/properties`),
       fetch(`${API}/users`),
-      fetch(`${API}/bookings/customer/all`).catch(() => ({ json: () => [] })),
+      fetch(`${API}/bookings`).catch(() => ({ json: () => [] })),
     ]);
     const properties = await pRes.json();
     const users = await uRes.json();
+    const bookings = await bRes.json();
 
     animateNumber('stat-properties', properties.length);
     animateNumber('stat-users', users.length);
+    animateNumber('stat-bookings', bookings.length);
   } catch {}
 }
 
