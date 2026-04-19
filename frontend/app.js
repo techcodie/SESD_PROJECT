@@ -1,7 +1,6 @@
-// Replace YOUR_RENDER_APP_URL with your actual Render deployment URL later
-const API = window.location.hostname === 'sesd-project-sa7h.onrender.com'
-  ? 'https://sesd-project-sa7h.onrender.com/api'
-  : 'http://127.0.0.1:3000/api';
+const API = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ? 'http://127.0.0.1:3000/api'
+  : 'https://sesd-project-sa7h.onrender.com/api';
 
 let loggedInUser = null;
 
@@ -15,8 +14,6 @@ function updateNavState() {
     if (addPropBtn) {
       addPropBtn.style.display = (loggedInUser.role === 'OWNER' || loggedInUser.role === 'ADMIN') ? 'inline-block' : 'none';
     }
-    document.getElementById('booking-customer-id').value = loggedInUser.userId;
-    document.getElementById('booking-customer-id').readOnly = true;
   } else {
     document.getElementById('nav-bookings').style.display = 'none';
     document.getElementById('auth-actions').style.display = 'flex';
